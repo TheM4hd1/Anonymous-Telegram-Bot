@@ -21,7 +21,7 @@ namespace HarfeToBeBot_v2._0.View {
                 new KeyboardButton(text: Emoji.INBOX + " پیام های دریافت شده") // inbox
             };
             KeyboardButton[] row_Mthree = {
-                new KeyboardButton(text: Emoji.QUESTION + " زاهنما") // help
+                new KeyboardButton(text: Emoji.QUESTION + " راهنما") // help
             };
             Main.Keyboard = new KeyboardButton[][] {
                 row_Mone,row_Mtwo,row_Mthree

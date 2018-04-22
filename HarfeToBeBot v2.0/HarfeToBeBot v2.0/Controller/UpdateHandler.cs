@@ -80,9 +80,10 @@ namespace HarfeToBeBot_v2._0.Controller {
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_BACK)) {
 
-                } else { // ---------------------------------------------------------------------------------------------------------------Handling requests
+                } else { // --------------------------------------------------------------------------------------------------------------- Handling requests
                     string request = BotApiMethods.GetLastUserRequest(id: chatId.Identifier);
-                    
+                    if (string.IsNullOrEmpty(request))
+                        return;
                     if(request.Contains(UserRequests.contactCode.ToString())) {
 
                     } else if(request.Contains(UserRequests.sendMessage.ToString())) {
