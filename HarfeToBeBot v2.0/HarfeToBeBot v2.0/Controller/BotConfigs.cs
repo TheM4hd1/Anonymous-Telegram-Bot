@@ -27,5 +27,7 @@ namespace HarfeToBeBot_v2._0.Controller {
         public const string MSG_GET_NAME = "";
         public const string MSG_EXCEPTION = "";
         public const string MSG_RECEIVE_CMD = "چه کاری می تونم برات انجام بدم؟";
+        public const string MSG_SENDING_ANONYMOUS = "شما در حال ارسال پیام ناشناس به X هستید.";
+        public const string MSG_USER_NOT_FOUND = "متاسفانه چنین شخصی رو نداریم\n لینک یا آیدی که وارد کردی اشتباهه.";
     }
 }

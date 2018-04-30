@@ -38,25 +38,31 @@ namespace HarfeToBeBot_v2._0.Controller {
                             Image profileImage = await BotApiMethods.GetProfileImageAsync(senderUser.Id);
                             Model.NewUser newUser = new Model.NewUser(chatId, senderUser, profileImage);
                             if (DatabaseHandler.RegisterUser(newUser)) {
-                                BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_WELCOME);
+                                BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_WELCOME); //------------------- Send "welcome message"
                             } else {
                                 BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_EXCEPTION);
                                 // send to admin
                             }
                         }
                     } else { //--------------------------------------------------------------------------------------------------------  '/start contactcode'
-                        if (DatabaseHandler.UserExists(chatId.Identifier)) {
-                            BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_RECEIVE_CMD); //----------------------------------------------------------------------- Send "what can i do for u?"
-                        } else { // ------------------------------------------------------------------------------------------------------ Register new user
+                        if (!DatabaseHandler.UserExists(chatId.Identifier)) {// ------------------------------ Register new user
                             Image profileImage = await BotApiMethods.GetProfileImageAsync(senderUser.Id);
                             Model.NewUser newUser = new Model.NewUser(chatId, senderUser, profileImage);
-                            if (DatabaseHandler.RegisterUser(newUser)) {
-                                BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_WELCOME);
-                            } else {
+                            if (!DatabaseHandler.RegisterUser(newUser)) {
                                 BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_EXCEPTION);//--------------------------------- sending a message to user that shows we are aware of the problem, we'll fix it soon
                                 //------------------------------------------------------------------------------------------------------ send the problem to admin(s)
+                                return;
                             }
                         }
+                        string contactCode = updateMessage.Split(separator: ' ')[1]; //------ updateMessage = '/start contactCode'.splitBySpace ----> contactCode
+                        if(DatabaseHandler.UserExists(contactCode: contactCode)) {
+                            string fullName = DatabaseHandler.GetFullNameByContactCode(contactCode: contactCode);
+                            BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_SENDING_ANONYMOUS.Replace("X", fullName)); //---- "your sending anonymous message to 'fullName' please type your message"
+                            // <SET REQUEST> 4/30/2018
+                        } else {
+                            BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_USER_NOT_FOUND);//--------------- user not found
+                        }
+                        
                     }
                     
 

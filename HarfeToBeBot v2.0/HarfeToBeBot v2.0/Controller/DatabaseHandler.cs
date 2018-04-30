@@ -44,7 +44,21 @@ namespace HarfeToBeBot_v2._0.Controller {
                     return true;
                 return false;
             } catch (Exception ex) {
-                ErrorHandler.SetError(source: "UserExists", error: ex.Message);
+                ErrorHandler.SetError(source: "UserExists(int)", error: ex.Message);
+                return false;
+            }
+        }
+
+        public bool UserExists(string contactCode) {
+            try {
+                SqlCommand command = new SqlCommand(cmdText: "SELECT COUNT(*) FROM tbl_users WHERE (ContactCode=@contact)", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@contact", value: contactCode);
+                int userExists = (int)command.ExecuteScalar();
+                if (userExists > 0)
+                    return true;
+                return false;
+            } catch (Exception ex) {
+                ErrorHandler.SetError(source: "UserExists(string)", error: ex.Message);
                 return false;
             }
         }
@@ -74,6 +88,22 @@ namespace HarfeToBeBot_v2._0.Controller {
             } catch(Exception ex) {
                 ErrorHandler.SetError(source: "SetContactName", error: ex.Message);
                 return false;
+            }
+        }
+
+        public string GetFullNameByContactCode(string contactCode) {
+            try {
+                SqlCommand command = new SqlCommand("SELECT FullName FROM tbl_users WHERE (ContactCode=@contact)", SqlConnection);
+                command.Parameters.AddWithValue("@contact", contactCode);
+                var fullName = (string)command.ExecuteScalar();
+                if (fullName != null) {
+                    return fullName.ToString();
+                }
+
+                return null;
+            } catch (Exception ex) {
+                ErrorHandler.SetError(source: "GetFullNameFromContactCode", error: ex.Message);
+                return null;
             }
         }
 
