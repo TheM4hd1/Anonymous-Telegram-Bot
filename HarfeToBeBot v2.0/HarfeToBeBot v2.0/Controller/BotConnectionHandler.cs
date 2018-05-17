@@ -10,16 +10,18 @@ namespace HarfeToBeBot_v2._0.Controller {
 
         TelegramBotClient TelegramBot;
         UpdateHandler UpdateHandler;
+        System.Windows.Forms.DataGridView DataGridView;
         string BotToken;
 
-        public BotConnectionHandler(string token) {
+        public BotConnectionHandler(string token, System.Windows.Forms.DataGridView dataGridView) {
             BotToken = token;
+            DataGridView = dataGridView;
         }
 
         public bool IsBotConnected() {
             try {
                 TelegramBot = new TelegramBotClient(token: BotToken);
-                UpdateHandler = new UpdateHandler(telegramBot: TelegramBot);
+                UpdateHandler = new UpdateHandler(telegramBot: TelegramBot,dataGridView: DataGridView);
                 return true;
             } catch (ArgumentException ex) {
                 ErrorHandler.SetError(source: "BotConnected", error: ex.Message);

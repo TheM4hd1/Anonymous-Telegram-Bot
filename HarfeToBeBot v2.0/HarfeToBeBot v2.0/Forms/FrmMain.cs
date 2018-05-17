@@ -22,7 +22,7 @@ namespace HarfeToBeBot_v2._0
 
         private async void btnStartStop_ClickAsync(object sender, EventArgs e)
         {
-            BotConnection = new Controller.BotConnectionHandler(token: txtToken.Text);
+            BotConnection = new Controller.BotConnectionHandler(token: txtToken.Text, dataGridView: dgvIncommingMessages);
             if (BotConnection.IsBotConnected())
             {
                 lblStatus.Text = "Connected.";

@@ -8,7 +8,7 @@ namespace HarfeToBeBot_v2._0.Controller {
     static class BotConfigs {
 
         // Bot Detail
-        public const string BOT_TOKEN = "";
+        public const string BOT_TOKEN = "***REMOVED***";
         public const string BOT_NAME = "HarfeToBeBot?start=";
         public const string BOT_INSTAGRAM_LINK = "https://t.me/" + BOT_NAME;
         public const string BOT_TELEGRAM_LINK = "https://telegram.me/" + BOT_NAME;
@@ -27,7 +27,7 @@ namespace HarfeToBeBot_v2._0.Controller {
         public const string MSG_GET_NAME = "";
         public const string MSG_EXCEPTION = "";
         public const string MSG_RECEIVE_CMD = "چه کاری می تونم برات انجام بدم؟";
-        public const string MSG_SENDING_ANONYMOUS = "شما در حال ارسال پیام ناشناس به X هستید.";
+        public const string MSG_SENDING_ANONYMOUS_TO = "شما در حال ارسال پیام ناشناس به X هستید.";
         public const string MSG_USER_NOT_FOUND = "متاسفانه چنین شخصی رو نداریم\n لینک یا آیدی که وارد کردی اشتباهه.";
     }
 }

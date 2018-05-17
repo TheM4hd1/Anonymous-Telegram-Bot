@@ -7,17 +7,19 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using HarfeToBeBot_v2._0.Model;
+using System.Windows.Forms;
 namespace HarfeToBeBot_v2._0.Controller {
     class UpdateHandler {
 
         TelegramBotClient TelegramBot;
         BotApiMethods BotApiMethods;
         DatabaseHandler DatabaseHandler;
-
-        public UpdateHandler(TelegramBotClient telegramBot) {
+        DataGridView DataGridView;
+        public UpdateHandler(TelegramBotClient telegramBot, DataGridView dataGridView) {
             TelegramBot = telegramBot;
             BotApiMethods = new BotApiMethods(telegramBot);
             DatabaseHandler = new DatabaseHandler();
+            DataGridView = dataGridView;
         }
 
         public async Task ReadTextMessageFromUpdateAsync(Update update) {
@@ -25,19 +27,27 @@ namespace HarfeToBeBot_v2._0.Controller {
             ChatId chatId;
             string updateMessage = string.Empty;
             try {
+
                 updateMessage = update.Message.Text;
                 updateMessage = updateMessage.StartsWith("/") ? updateMessage.ToLower() : updateMessage;
                 senderUser = update.Message.From;
                 chatId = update.Message.Chat.Id;
 
+                // Update UI
+                DataGridView.Invoke((MethodInvoker)delegate {
+                    // From,Name,To,ReceiverName,Message
+                    DataGridView.Rows.Add(chatId.Identifier, senderUser.FirstName, "BOT", "BOT", updateMessage);
+                });
+
                 if (updateMessage.StartsWith(BotConfigs.CMD_START)) {
+
                     if(updateMessage.Equals(BotConfigs.CMD_START)) { //----------------------------------------------------------------- '/start'
                         if(DatabaseHandler.UserExists(id: chatId.Identifier)) { 
                             BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_RECEIVE_CMD);//------------------------------------ Send "what can i do for u?"
                         } else {//---------------------------------------------------------------------------------------------------- Register new user
                             Image profileImage = await BotApiMethods.GetProfileImageAsync(senderUser.Id);
                             Model.NewUser newUser = new Model.NewUser(chatId, senderUser, profileImage);
-                            if (DatabaseHandler.RegisterUser(newUser)) {
+                            if (DatabaseHandler.RegisterUser(newUser: newUser)) {
                                 BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_WELCOME); //------------------- Send "welcome message"
                             } else {
                                 BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_EXCEPTION);
@@ -45,10 +55,11 @@ namespace HarfeToBeBot_v2._0.Controller {
                             }
                         }
                     } else { //--------------------------------------------------------------------------------------------------------  '/start contactcode'
+
                         if (!DatabaseHandler.UserExists(chatId.Identifier)) {// ------------------------------ Register new user
                             Image profileImage = await BotApiMethods.GetProfileImageAsync(senderUser.Id);
                             Model.NewUser newUser = new Model.NewUser(chatId, senderUser, profileImage);
-                            if (!DatabaseHandler.RegisterUser(newUser)) {
+                            if (!DatabaseHandler.RegisterUser(newUser: newUser)) {
                                 BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_EXCEPTION);//--------------------------------- sending a message to user that shows we are aware of the problem, we'll fix it soon
                                 //------------------------------------------------------------------------------------------------------ send the problem to admin(s)
                                 return;
@@ -57,16 +68,19 @@ namespace HarfeToBeBot_v2._0.Controller {
                         string contactCode = updateMessage.Split(separator: ' ')[1]; //------ updateMessage = '/start contactCode'.splitBySpace ----> contactCode
                         if(DatabaseHandler.UserExists(contactCode: contactCode)) {
                             string fullName = DatabaseHandler.GetFullNameByContactCode(contactCode: contactCode);
-                            BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_SENDING_ANONYMOUS.Replace("X", fullName)); //---- "your sending anonymous message to 'fullName' please type your message"
-                            // <SET REQUEST> 4/30/2018
+                            BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_SENDING_ANONYMOUS_TO.Replace("X", fullName)); //---- "you're going to send an anonymous message for 'fullName' please type your message"
+                            DatabaseHandler.EditUserRequest(id: chatId.Identifier, contactCode: contactCode, userRequests: UserRequests.sendMessage);/* ---Update tbl_requests for chatId with request "sendMessage" and "contactCode",
+                                                                                                                                                      if user types anymessage and press enter, we will send it to target, (exception: user press BackButton)*/
+                            // <REQUEST ADDED TO DATABASE, NOW WE NEED TO ANALYZE THE NEXT USER'S MESSAGE>
+                            // NEXT UPDATE STARTS HERE .....
                         } else {
                             BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_USER_NOT_FOUND);//--------------- user not found
                         }
-                        
                     }
                     
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_LINK)) { //------------------------------------------- Request contact links
+
                     if (DatabaseHandler.IsContactNameSet(id: chatId.Identifier)) {//---------------------------------------------------------------------- If user's name is set to database
                         string links = BotApiMethods.CreateAnonymousLinks(id: chatId.Identifier);//-------------------------------------------- Receive links
                         BotApiMethods.SendTextMessageAsync(chatId: chatId, message: links);

@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
 using HarfeToBeBot_v2._0.Utilities;
+using HarfeToBeBot_v2._0.Model;
+
 namespace HarfeToBeBot_v2._0.Controller {
     class DatabaseHandler {
         SqlConnection SqlConnection;
@@ -28,6 +30,9 @@ namespace HarfeToBeBot_v2._0.Controller {
                 cmd.Parameters.AddWithValue(parameterName: "@contact", value: newUser.ContactCode);
                 cmd.Parameters.AddWithValue(parameterName: "@image", value: Utilities.Helper.GetBytesFromImage(image: newUser.ProfilePicture));
                 cmd.ExecuteNonQuery();
+
+                cmd = new SqlCommand(cmdText: "INSERT INTO tbl_requests (Id) VALUES (@id)", connection: SqlConnection);
+                cmd.Parameters.AddWithValue("@id", value: newUser.Id);
                 return true;
             } catch (Exception ex) {
                 ErrorHandler.SetError(source: "RegisterUser", error: ex.Message);
@@ -93,7 +98,7 @@ namespace HarfeToBeBot_v2._0.Controller {
 
         public string GetFullNameByContactCode(string contactCode) {
             try {
-                SqlCommand command = new SqlCommand("SELECT FullName FROM tbl_users WHERE (ContactCode=@contact)", SqlConnection);
+                SqlCommand command = new SqlCommand(cmdText: "SELECT FullName FROM tbl_users WHERE (ContactCode=@contact)", connection: SqlConnection);
                 command.Parameters.AddWithValue("@contact", contactCode);
                 var fullName = (string)command.ExecuteScalar();
                 if (fullName != null) {
@@ -107,6 +112,19 @@ namespace HarfeToBeBot_v2._0.Controller {
             }
         }
 
+        public bool EditUserRequest(long id, string contactCode = "", UserRequests userRequests) {
+            try {
+                SqlCommand command = new SqlCommand(cmdText: "UPDATE tbl_requests SET (Request=@request,ContactCode=@contact) WHERE Id=@id", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@requst", value: (int)userRequests);
+                command.Parameters.AddWithValue(parameterName: "@contact", value: contactCode);
+                command.Parameters.AddWithValue(parameterName: "@id", value: id);
+                command.ExecuteNonQuery();
 
+                return true;
+            } catch (Exception ex) {
+                ErrorHandler.SetError(source: "EditUserRequest", error: ex.Message);
+                return false;
+            }
+        }
     }
 }
