@@ -107,6 +107,7 @@ namespace HarfeToBeBot_v2._0.Controller {
                     if(request == UserRequests.contactCode) {
 
                     } else if(request == UserRequests.sendMessage) {
+                        
 
                     } else if (request == UserRequests.replyToMessage) {
 

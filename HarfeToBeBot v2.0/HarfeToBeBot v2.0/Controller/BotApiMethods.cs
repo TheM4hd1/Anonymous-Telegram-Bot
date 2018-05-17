@@ -28,13 +28,11 @@ namespace HarfeToBeBot_v2._0.Controller {
                 UserProfilePhotos profilePhotos = await TelegramBot.GetUserProfilePhotosAsync(userId);
                 PhotoSize photoSize = profilePhotos.Photos[0][1];
                 Telegram.Bot.Types.File profileFile = await TelegramBot.GetFileAsync(photoSize.FileId);
-                // NEW TELEGRAM API.THERE IS NO MORE METHOD CALLED profileFile.FileStream
-                WebClient wc = new WebClient();
-                byte[] bytes = wc.DownloadData($"https://api.telegram.org/file/bot<{BotConfigs.BOT_TOKEN}>/<{profileFile.FilePath}>");
-                MemoryStream ms = new MemoryStream(bytes);
+                Stream imageStream = new MemoryStream();
+                Telegram.Bot.Types.File getFile = await TelegramBot.GetInfoAndDownloadFileAsync(profileFile.FileId, imageStream);
 
-                profileImage = Image.FromStream(ms);
-                profileImage.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                profileImage = Image.FromStream(imageStream);
+                profileImage.Save(imageStream, System.Drawing.Imaging.ImageFormat.Jpeg);
             } catch (Exception ex) {
                 ErrorHandler.SetError(source: "GetProfileImageAsync", error: ex.Message);
                 profileImage = Image.FromFile("unkown.png");
@@ -70,14 +68,6 @@ namespace HarfeToBeBot_v2._0.Controller {
             }
         }
 
-        public string GetLastUserRequest(long id) {
-            try {
-                return null;
-            } catch(Exception ex) {
-                ErrorHandler.SetError(source: "GetLastUserRequest", error: ex.Message);
-                return null;
-            }
-        }
         public async void SendTextMessageAsync(ChatId chatId, string message, ReplyKeyboardMarkup keyboard = null) {
             if(keyboard == null) {
                 keyboard = Keyboards.Main;

@@ -33,6 +33,7 @@ namespace HarfeToBeBot_v2._0.Controller {
 
                 cmd = new SqlCommand(cmdText: "INSERT INTO tbl_requests (Id) VALUES (@id)", connection: SqlConnection);
                 cmd.Parameters.AddWithValue("@id", value: newUser.Id);
+                cmd.ExecuteNonQuery();
                 return true;
             } catch (Exception ex) {
                 ErrorHandler.SetError(source: "RegisterUser", error: ex.Message);
@@ -137,6 +138,24 @@ namespace HarfeToBeBot_v2._0.Controller {
             } catch (Exception ex) {
                 ErrorHandler.SetError(source: "GetCurrentRequest", error: ex.Message);
                 return UserRequests.empty;
+            }
+        }
+
+        public bool AddMessage(long receiverId, string receiverName, string receiverContactCode, string message,long senderId, string senderName) {
+            try {
+                SqlCommand command = new SqlCommand("INSERT INTO tbl_messages (ReceiverId,ReceiverName,ReceiverContactCode,Message,SenderId,SenderName) VALUES (@rId,@rName,@rCode,@message,sId,@sName)", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@rId", value: receiverId);
+                command.Parameters.AddWithValue(parameterName: "@rName", value: receiverName);
+                command.Parameters.AddWithValue(parameterName: "@rCode", value: receiverContactCode);
+                command.Parameters.AddWithValue(parameterName: "@message", value: message);
+                command.Parameters.AddWithValue(parameterName: "@sId", value: senderId);
+                command.Parameters.AddWithValue(parameterName: "@sName", value: senderName);
+
+                command.ExecuteNonQuery();
+                return true;
+            } catch(Exception ex) {
+                ErrorHandler.SetError(source: "AddMessage", error: ex.Message);
+                return false;
             }
         }
     }
