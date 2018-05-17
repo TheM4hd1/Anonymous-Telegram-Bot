@@ -9,6 +9,8 @@ using Telegram.Bot.Types;
 using HarfeToBeBot_v2._0.Model;
 using HarfeToBeBot_v2._0.View;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Net;
+using System.IO;
 
 namespace HarfeToBeBot_v2._0.Controller {
     class BotApiMethods {
@@ -25,9 +27,14 @@ namespace HarfeToBeBot_v2._0.Controller {
             try {
                 UserProfilePhotos profilePhotos = await TelegramBot.GetUserProfilePhotosAsync(userId);
                 PhotoSize photoSize = profilePhotos.Photos[0][1];
-                File profileFile = await TelegramBot.GetFileAsync(photoSize.FileId);
-                profileImage = Image.FromStream(profileFile.FileStream);
-                profileImage.Save(profileFile.FileStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                Telegram.Bot.Types.File profileFile = await TelegramBot.GetFileAsync(photoSize.FileId);
+                // NEW TELEGRAM API.THERE IS NO MORE METHOD CALLED profileFile.FileStream
+                WebClient wc = new WebClient();
+                byte[] bytes = wc.DownloadData($"https://api.telegram.org/file/bot<{BotConfigs.BOT_TOKEN}>/<{profileFile.FilePath}>");
+                MemoryStream ms = new MemoryStream(bytes);
+
+                profileImage = Image.FromStream(ms);
+                profileImage.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
             } catch (Exception ex) {
                 ErrorHandler.SetError(source: "GetProfileImageAsync", error: ex.Message);
                 profileImage = Image.FromFile("unkown.png");

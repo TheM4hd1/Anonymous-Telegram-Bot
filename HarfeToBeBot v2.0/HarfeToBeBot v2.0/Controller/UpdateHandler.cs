@@ -69,7 +69,7 @@ namespace HarfeToBeBot_v2._0.Controller {
                         if(DatabaseHandler.UserExists(contactCode: contactCode)) {
                             string fullName = DatabaseHandler.GetFullNameByContactCode(contactCode: contactCode);
                             BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_SENDING_ANONYMOUS_TO.Replace("X", fullName)); //---- "you're going to send an anonymous message for 'fullName' please type your message"
-                            DatabaseHandler.EditUserRequest(id: chatId.Identifier, contactCode: contactCode, userRequests: UserRequests.sendMessage);/* ---Update tbl_requests for chatId with request "sendMessage" and "contactCode",
+                            DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.sendMessage, contactCode: contactCode);/* ---Update tbl_requests for chatId with request "sendMessage" and "contactCode",
                                                                                                                                                       if user types anymessage and press enter, we will send it to target, (exception: user press BackButton)*/
                             // <REQUEST ADDED TO DATABASE, NOW WE NEED TO ANALYZE THE NEXT USER'S MESSAGE>
                             // NEXT UPDATE STARTS HERE .....
@@ -100,15 +100,15 @@ namespace HarfeToBeBot_v2._0.Controller {
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_BACK)) {
 
-                } else { // --------------------------------------------------------------------------------------------------------------- Handling requests
-                    string request = BotApiMethods.GetLastUserRequest(id: chatId.Identifier);
-                    if (string.IsNullOrEmpty(request))
+                } else { // --------------------------------------------------------------------------------------------------------------- Handling user requests like sendMessage and etc..
+                    UserRequests request = DatabaseHandler.GetCurrentRequest(id: chatId.Identifier);
+                    if (request == UserRequests.empty)
                         return;
-                    if(request.Contains(UserRequests.contactCode.ToString())) {
+                    if(request == UserRequests.contactCode) {
 
-                    } else if(request.Contains(UserRequests.sendMessage.ToString())) {
+                    } else if(request == UserRequests.sendMessage) {
 
-                    } else if (request.Contains(UserRequests.replyToMessage.ToString())) {
+                    } else if (request == UserRequests.replyToMessage) {
 
                     }
                 }

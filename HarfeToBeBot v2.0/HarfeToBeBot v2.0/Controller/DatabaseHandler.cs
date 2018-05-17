@@ -112,7 +112,7 @@ namespace HarfeToBeBot_v2._0.Controller {
             }
         }
 
-        public bool EditUserRequest(long id, string contactCode = "", UserRequests userRequests) {
+        public bool EditUserRequest(long id, UserRequests userRequests, string contactCode = "") {
             try {
                 SqlCommand command = new SqlCommand(cmdText: "UPDATE tbl_requests SET (Request=@request,ContactCode=@contact) WHERE Id=@id", connection: SqlConnection);
                 command.Parameters.AddWithValue(parameterName: "@requst", value: (int)userRequests);
@@ -124,6 +124,19 @@ namespace HarfeToBeBot_v2._0.Controller {
             } catch (Exception ex) {
                 ErrorHandler.SetError(source: "EditUserRequest", error: ex.Message);
                 return false;
+            }
+        }
+
+        public UserRequests GetCurrentRequest(long id) {
+            try {
+                SqlCommand command = new SqlCommand("SELECT Request FROM tbl_requests WHERE (Id=@id)", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@id", value: id);
+                var request = (UserRequests)(int)command.ExecuteScalar();
+
+                return request;
+            } catch (Exception ex) {
+                ErrorHandler.SetError(source: "GetCurrentRequest", error: ex.Message);
+                return UserRequests.empty;
             }
         }
     }
