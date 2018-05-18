@@ -7,6 +7,10 @@
 **پیام ابتدا برای بات ارسال میشه و بعد از اون بات برای فرد دیگر پیام رو ارسال می کنه**
 **کاملا شبیه به کار یک پروکسی**
 
+###  امکانات:
+
+ * قابلیت پاسخ به پیام ( ریپلای )
+ * اطلاع به کاربر هنگام دریافت پیام جدید
 
 ###   پنل ادمین بات قابلیت های زیر رو دارا می باشد:
 
@@ -37,9 +41,13 @@
   * ReceiverId - [bigint]
   * ReceiverName - [nvarchar(100)]
   * ReceiverContactCode - [nvarchar(50)]
+  * ReceiverUsername - [nvarchar(100)]
   * Message - [nvarchar(max)]
   * SenderId - [bigint]
   * SenderName - [nvarchar(100)]
+  * SenderUsername - [nvarchar(100)]
+  * Id - [int]
+  
 * tbl_requests
   * Id - [bigint]
   * Request - [int]
