@@ -16,6 +16,7 @@ namespace HarfeToBeBot_v2._0.Controller {
     class BotApiMethods {
 
         TelegramBotClient TelegramBot;
+        DatabaseHandler DatabaseHandler = new DatabaseHandler();
         public View.Keyboards Keyboards;
         public BotApiMethods(TelegramBotClient telegramBot) {
             TelegramBot = telegramBot;
@@ -42,7 +43,7 @@ namespace HarfeToBeBot_v2._0.Controller {
         }
 
         public string CreateAnonymousLinks(long id) {
-            string contactCode = FindUserContactCode(id: id);
+            string contactCode = DatabaseHandler.GetContactCode(id: id);
             string message = $"Link For Instagram: {BotConfigs.BOT_INSTAGRAM_LINK}{contactCode}\n" +
                 $"Link For Telegram: {BotConfigs.BOT_TELEGRAM_LINK}{contactCode}";
 

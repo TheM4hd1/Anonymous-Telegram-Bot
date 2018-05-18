@@ -98,6 +98,22 @@ namespace HarfeToBeBot_v2._0.Controller {
             }
         }
 
+        public string GetContactCode(long id) {
+            try {
+                SqlCommand command = new SqlCommand(cmdText: "SELECT ContactCode FROM tbl_users WHERE Id=@id", connection: SqlConnection);
+                command.Parameters.AddWithValue("@id", value: id);
+                var contactCode = command.ExecuteScalar();
+
+                if (contactCode != null) {
+                    return contactCode.ToString();
+                }
+            } catch(Exception ex) {
+                ErrorHandler.SetError(source: "GetContactCode", error: ex.Message);
+            }
+
+            return null;
+        }
+        
         public string GetFullNameByContactCode(string contactCode) {
             try {
                 SqlCommand command = new SqlCommand(cmdText: "SELECT FullName FROM tbl_users WHERE (ContactCode=@contact)", connection: SqlConnection);

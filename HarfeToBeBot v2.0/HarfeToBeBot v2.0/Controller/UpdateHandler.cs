@@ -75,7 +75,6 @@ namespace HarfeToBeBot_v2._0.Controller {
                             DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.sendMessage, contactCode: contactCode);/* ---Update tbl_requests for chatId with request "sendMessage" and "contactCode",
                                                                                                                                                       if user types anymessage and press enter, we will send it to target, (exception: user press BackButton)*/
                             // <REQUEST ADDED TO DATABASE, NOW WE NEED TO ANALYZE THE NEXT USER'S MESSAGE>
-                            // NEXT UPDATE STARTS HERE .....
                         } else {
                             BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_USER_NOT_FOUND);//--------------- user not found
                         }
@@ -88,39 +87,45 @@ namespace HarfeToBeBot_v2._0.Controller {
                         string links = BotApiMethods.CreateAnonymousLinks(id: chatId.Identifier);//-------------------------------------------- Receive links
                         BotApiMethods.SendTextMessageAsync(chatId: chatId, message: links);
                     } else {//---------------------------------------------------------------------------------------------------------------------------------- before sending links, set user's name to database
-                        if(DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: Model.UserRequests.contactCode)) { // Add a request to database, user wants to enter his/her own name. database model { column 'Request' ---value---> 0000001 }
+                        if(DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: Model.UserRequests.contactCode)) { // Add a request to database, user wants to enter his/her own name.
                             BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_GET_NAME, keyboard: Keyboards.Back);
                         } else {
                             BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_EXCEPTION);
                             // send to admin
                         }
                     }
-                } else if (updateMessage.Equals(BotConfigs.CMD_INBOX)) {
+                } else if (updateMessage.Equals(BotConfigs.CMD_INBOX)) { // ------------------- receive inbox Messages from database.
 
-                    System.Data.SqlClient.SqlDataReader userMessages = DatabaseHandler.GetAllMessagesFor(id: chatId.Identifier);
+                    System.Data.SqlClient.SqlDataReader userMessages = DatabaseHandler.GetAllMessagesFor(id: chatId.Identifier); // -- request to database for returning messages.
                     if(userMessages != null) {
-                        string messages = string.Empty;
-                        int messageNumber = 0;
+                        string messages = string.Empty; // User messages.
+                        int messageNumber = 0; // ------------------------ messages count.
                         while(userMessages.Read()) {
-                            messages = messages + $"{++messageNumber}- {userMessages.GetString(0)}\n";
+                            messages = messages + $"{++messageNumber}- {userMessages.GetString(0)}\n"; // Model -> 1- HereIsMessageOne ... \n 2- HereIsMessageTwo ... and etc..
                         }
 
                         userMessages.Close();
-                        BotApiMethods.SendTextMessageAsync(chatId: chatId, message: $"{BotConfigs.MSG_SHOW_INBOX.Replace("X", messageNumber.ToString())}{messages}", keyboard:Keyboards.Inbox);
+                        BotApiMethods.SendTextMessageAsync(chatId: chatId, message: $"{BotConfigs.MSG_SHOW_INBOX.Replace("X", messageNumber.ToString())}{messages}", keyboard:Keyboards.Inbox); // Send messages to user.
                     }
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_HELP)) {
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_REPLY)) {
 
-                } else if (updateMessage.Equals(BotConfigs.CMD_BACK)) {
-
-                } else { // --------------------------------------------------------------------------------------------------------------- Handling user requests like sendMessage and etc..
+                } else if (updateMessage.Equals(BotConfigs.CMD_BACK)) { // ---- We need to clean user's request from database for preventing future errors/exceptions.
+                    if(DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.empty)) {
+                        BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_RECEIVE_CMD);
+                    }
+                } else { // --------------------------------------------------------------------------------------------------------------- Handling user requests like sendMessage, replyMessage and etc..
                     UserRequests request = DatabaseHandler.GetCurrentRequest(id: chatId.Identifier);
                     if (request == UserRequests.empty)
                         return;
                     if(request == UserRequests.contactCode) {
 
+                        if(DatabaseHandler.SetContactName(id: chatId.Identifier, name: updateMessage)) {
+                            string links = BotApiMethods.CreateAnonymousLinks(id: chatId.Identifier);//-------------------------------------------- Receive links
+                            BotApiMethods.SendTextMessageAsync(chatId: chatId, message: links);
+                        }
                     } else if(request == UserRequests.sendMessage) {
                         
 

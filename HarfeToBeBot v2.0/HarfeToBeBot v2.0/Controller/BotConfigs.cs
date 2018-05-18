@@ -25,7 +25,7 @@ namespace HarfeToBeBot_v2._0.Controller {
         // Preset Messages
         public const string MSG_WELCOME = " سلام به حرف تو به بات خوش اومدی" + View.Emoji.FACE_WITH_HEART + "\nبا کمک من میتونی برای دوستات بصورت ناشناس پیام بفرستی\n" + "اگر کمک خواستی روی راهنما کلیک کن";
         public const string MSG_HELP = "";
-        public const string MSG_GET_NAME = "اسمت رو وارد کن";
+        public const string MSG_GET_NAME = "اسمت رو وارد کن تا بفیه موقع ارسال پیام بدونن دارن برای کی پیام میفرستن";
         public const string MSG_EXCEPTION = "";
         public const string MSG_RECEIVE_CMD = "چه کاری می تونم برات انجام بدم؟";
         public const string MSG_SENDING_ANONYMOUS_TO = "شما در حال ارسال پیام ناشناس به X هستید.";
