@@ -32,7 +32,7 @@ namespace HarfeToBeBot_v2._0.Controller {
                 Telegram.Bot.Types.File getFile = await TelegramBot.GetInfoAndDownloadFileAsync(profileFile.FileId, imageStream);
 
                 profileImage = Image.FromStream(imageStream);
-                profileImage.Save(imageStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                //profileImage.Save(imageStream, System.Drawing.Imaging.ImageFormat.Jpeg);
             } catch (Exception ex) {
                 ErrorHandler.SetError(source: "GetProfileImageAsync", error: ex.Message);
                 profileImage = Image.FromFile("unkown.png");
@@ -69,6 +69,8 @@ namespace HarfeToBeBot_v2._0.Controller {
         }
 
         public async void SendTextMessageAsync(ChatId chatId, string message, ReplyKeyboardMarkup keyboard = null) {
+            if (string.IsNullOrEmpty(message))
+                return;
             if(keyboard == null) {
                 keyboard = Keyboards.Main;
             }

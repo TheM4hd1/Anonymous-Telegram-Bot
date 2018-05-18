@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace HarfeToBeBot_v2._0.Model {
     public enum UserRequests: int { // 6-digits
-        contactCode = 000001,
-        sendMessage = 000002,
-        replyToMessage = 000003,
-        empty = 000004
+        contactCode = 1,
+        sendMessage = 2,
+        replyToMessage = 3,
+        empty = 4
     }
 }

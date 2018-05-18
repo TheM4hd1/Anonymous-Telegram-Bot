@@ -8,6 +8,8 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using HarfeToBeBot_v2._0.Model;
 using System.Windows.Forms;
+using HarfeToBeBot_v2._0.View;
+
 namespace HarfeToBeBot_v2._0.Controller {
     class UpdateHandler {
 
@@ -15,6 +17,7 @@ namespace HarfeToBeBot_v2._0.Controller {
         BotApiMethods BotApiMethods;
         DatabaseHandler DatabaseHandler;
         DataGridView DataGridView;
+        Keyboards Keyboards = new Keyboards();
         public UpdateHandler(TelegramBotClient telegramBot, DataGridView dataGridView) {
             TelegramBot = telegramBot;
             BotApiMethods = new BotApiMethods(telegramBot);
@@ -32,7 +35,7 @@ namespace HarfeToBeBot_v2._0.Controller {
                 updateMessage = updateMessage.StartsWith("/") ? updateMessage.ToLower() : updateMessage;
                 senderUser = update.Message.From;
                 chatId = update.Message.Chat.Id;
-
+                DatabaseHandler.GetCurrentRequest(chatId.Identifier);
                 // Update UI
                 DataGridView.Invoke((MethodInvoker)delegate {
                     // From,Name,To,ReceiverName,Message
@@ -79,26 +82,38 @@ namespace HarfeToBeBot_v2._0.Controller {
                     }
                     
 
-                } else if (updateMessage.StartsWith(BotConfigs.CMD_LINK)) { //------------------------------------------- Request contact links
+                } else if (updateMessage.Equals(BotConfigs.CMD_LINK)) { //------------------------------------------- Request contact links
 
                     if (DatabaseHandler.IsContactNameSet(id: chatId.Identifier)) {//---------------------------------------------------------------------- If user's name is set to database
                         string links = BotApiMethods.CreateAnonymousLinks(id: chatId.Identifier);//-------------------------------------------- Receive links
                         BotApiMethods.SendTextMessageAsync(chatId: chatId, message: links);
                     } else {//---------------------------------------------------------------------------------------------------------------------------------- before sending links, set user's name to database
-                        if(BotApiMethods.EditUserRequest(id: chatId.Identifier, userRequests: Model.UserRequests.contactCode)) { // Add a request to database, user wants to enter his/her own name. database model { column 'Request' ---value---> 0000001 }
-                            BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_GET_NAME);
+                        if(DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: Model.UserRequests.contactCode)) { // Add a request to database, user wants to enter his/her own name. database model { column 'Request' ---value---> 0000001 }
+                            BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_GET_NAME, keyboard: Keyboards.Back);
                         } else {
                             BotApiMethods.SendTextMessageAsync(chatId: chatId, message: BotConfigs.MSG_EXCEPTION);
                             // send to admin
                         }
                     }
-                } else if (updateMessage.StartsWith(BotConfigs.CMD_INBOX)) {
+                } else if (updateMessage.Equals(BotConfigs.CMD_INBOX)) {
+
+                    System.Data.SqlClient.SqlDataReader userMessages = DatabaseHandler.GetAllMessagesFor(id: chatId.Identifier);
+                    if(userMessages != null) {
+                        string messages = string.Empty;
+                        int messageNumber = 0;
+                        while(userMessages.Read()) {
+                            messages = messages + $"{++messageNumber}- {userMessages.GetString(0)}\n";
+                        }
+
+                        userMessages.Close();
+                        BotApiMethods.SendTextMessageAsync(chatId: chatId, message: $"{BotConfigs.MSG_SHOW_INBOX.Replace("X", messageNumber.ToString())}{messages}", keyboard:Keyboards.Inbox);
+                    }
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_HELP)) {
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_REPLY)) {
 
-                } else if (updateMessage.StartsWith(BotConfigs.CMD_BACK)) {
+                } else if (updateMessage.Equals(BotConfigs.CMD_BACK)) {
 
                 } else { // --------------------------------------------------------------------------------------------------------------- Handling user requests like sendMessage and etc..
                     UserRequests request = DatabaseHandler.GetCurrentRequest(id: chatId.Identifier);

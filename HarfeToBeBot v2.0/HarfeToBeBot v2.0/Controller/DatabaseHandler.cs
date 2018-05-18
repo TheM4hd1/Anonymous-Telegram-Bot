@@ -31,8 +31,9 @@ namespace HarfeToBeBot_v2._0.Controller {
                 cmd.Parameters.AddWithValue(parameterName: "@image", value: Utilities.Helper.GetBytesFromImage(image: newUser.ProfilePicture));
                 cmd.ExecuteNonQuery();
 
-                cmd = new SqlCommand(cmdText: "INSERT INTO tbl_requests (Id) VALUES (@id)", connection: SqlConnection);
+                cmd = new SqlCommand(cmdText: "INSERT INTO tbl_requests (Id,Request) VALUES (@id,@req)", connection: SqlConnection);
                 cmd.Parameters.AddWithValue("@id", value: newUser.Id);
+                cmd.Parameters.AddWithValue("@req", value: UserRequests.empty);
                 cmd.ExecuteNonQuery();
                 return true;
             } catch (Exception ex) {
@@ -75,7 +76,7 @@ namespace HarfeToBeBot_v2._0.Controller {
                 command.Parameters.AddWithValue(parameterName: "@id", value: id);
                 var contactName = command.ExecuteScalar();
 
-                if (contactName != null)
+                if (!string.IsNullOrEmpty(contactName.ToString()))
                     return true;
                 return false;
             } catch(Exception ex) {
@@ -115,8 +116,8 @@ namespace HarfeToBeBot_v2._0.Controller {
 
         public bool EditUserRequest(long id, UserRequests userRequests, string contactCode = "") {
             try {
-                SqlCommand command = new SqlCommand(cmdText: "UPDATE tbl_requests SET (Request=@request,ContactCode=@contact) WHERE Id=@id", connection: SqlConnection);
-                command.Parameters.AddWithValue(parameterName: "@requst", value: (int)userRequests);
+                SqlCommand command = new SqlCommand(cmdText: "UPDATE tbl_requests SET Request=@request,ContactCode=@contact WHERE Id=@id", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@request", value: (int)userRequests);
                 command.Parameters.AddWithValue(parameterName: "@contact", value: contactCode);
                 command.Parameters.AddWithValue(parameterName: "@id", value: id);
                 command.ExecuteNonQuery();
@@ -132,9 +133,9 @@ namespace HarfeToBeBot_v2._0.Controller {
             try {
                 SqlCommand command = new SqlCommand("SELECT Request FROM tbl_requests WHERE (Id=@id)", connection: SqlConnection);
                 command.Parameters.AddWithValue(parameterName: "@id", value: id);
-                var request = (UserRequests)(int)command.ExecuteScalar();
-
-                return request;
+                var request = command.ExecuteScalar();
+                var userRequest = (UserRequests)int.Parse(request.ToString());
+                return userRequest;
             } catch (Exception ex) {
                 ErrorHandler.SetError(source: "GetCurrentRequest", error: ex.Message);
                 return UserRequests.empty;
@@ -156,6 +157,19 @@ namespace HarfeToBeBot_v2._0.Controller {
             } catch(Exception ex) {
                 ErrorHandler.SetError(source: "AddMessage", error: ex.Message);
                 return false;
+            }
+        }
+
+        public SqlDataReader GetAllMessagesFor(long id) {
+            try {
+                SqlCommand command = new SqlCommand("SELECT Message FROM tbl_messages WHERE (ReceiverId=@rId)", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@rId", value: id);
+                SqlDataReader userMessages = command.ExecuteReader();
+
+                return userMessages;
+            } catch(Exception ex) {
+                ErrorHandler.SetError(source: "GetAllMessagesFor", error: ex.Message);
+                return null;
             }
         }
     }
