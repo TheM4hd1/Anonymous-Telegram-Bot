@@ -120,15 +120,26 @@ namespace HarfeToBeBot_v2._0.Controller {
                     UserRequests request = DatabaseHandler.GetCurrentRequest(id: chatId.Identifier);
                     if (request == UserRequests.empty)
                         return;
-                    if(request == UserRequests.contactCode) {
+                    if(request == UserRequests.contactCode) { // If user requests the contact links.
 
                         if(DatabaseHandler.SetContactName(id: chatId.Identifier, name: updateMessage)) {
-                            string links = BotApiMethods.CreateAnonymousLinks(id: chatId.Identifier);//-------------------------------------------- Receive links
-                            BotApiMethods.SendTextMessageAsync(chatId: chatId, message: links);
+                            string links = BotApiMethods.CreateAnonymousLinks(id: chatId.Identifier); // --------- Receive links
+                            BotApiMethods.SendTextMessageAsync(chatId: chatId, message: links); //  Send links to user
                         }
-                    } else if(request == UserRequests.sendMessage) {
-                        
+                    } else if(request == UserRequests.sendMessage) { /* If user requests to send anonymous Message to anotherone. We already saved the target's contactCode in database when
+                                                                        setting up the sendMessage request(line 75)*/
+                        string rContact = DatabaseHandler.GetContactCodeFromRequests(id: chatId.Identifier); // receiver contactCode
+                        long rId = DatabaseHandler.GetIdByContactCode(contactCode: rContact); // reciver id
+                        string rName = DatabaseHandler.GetFullNameByContactCode(contactCode: rContact); // receiver name
+                        string rUser = DatabaseHandler.GetUsernameById(id: rId); // receiver username
+                        string sContact = DatabaseHandler.GetContactCode(id: chatId.Identifier); // sender contactCode
+                        string sName = DatabaseHandler.GetFullNameByContactCode(contactCode: sContact); // sender name
+                        string sUser = DatabaseHandler.GetUsernameById(id: chatId.Identifier); // sender username, we could also get it from senderUser object too(line 29)
+                        DatabaseHandler.AddMessage(receiverId: rId, receiverName: rName, receiverContactCode: rContact,receiverUsername: rUser, message: updateMessage, senderId: chatId.Identifier, senderName: sName, senderUsername: sUser); // Add message to database.
+                        DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.empty); // Clean senderUser request from database.
 
+                        BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_SENT); // Notif sender that your message sent.
+                        BotApiMethods.SendTextMessageAsync(chatId: rId, message: BotConfigs.MSG_NEW_MESSAGE);// Notif receiver that you received a new message.
                     } else if (request == UserRequests.replyToMessage) {
 
                     }

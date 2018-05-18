@@ -147,7 +147,7 @@ namespace HarfeToBeBot_v2._0.Controller {
 
         public UserRequests GetCurrentRequest(long id) {
             try {
-                SqlCommand command = new SqlCommand("SELECT Request FROM tbl_requests WHERE (Id=@id)", connection: SqlConnection);
+                SqlCommand command = new SqlCommand(cmdText: "SELECT Request FROM tbl_requests WHERE (Id=@id)", connection: SqlConnection);
                 command.Parameters.AddWithValue(parameterName: "@id", value: id);
                 var request = command.ExecuteScalar();
                 var userRequest = (UserRequests)int.Parse(request.ToString());
@@ -158,15 +158,65 @@ namespace HarfeToBeBot_v2._0.Controller {
             }
         }
 
-        public bool AddMessage(long receiverId, string receiverName, string receiverContactCode, string message,long senderId, string senderName) {
+        public string GetContactCodeFromRequests(long id) {
             try {
-                SqlCommand command = new SqlCommand("INSERT INTO tbl_messages (ReceiverId,ReceiverName,ReceiverContactCode,Message,SenderId,SenderName) VALUES (@rId,@rName,@rCode,@message,sId,@sName)", connection: SqlConnection);
+                SqlCommand command = new SqlCommand(cmdText: "SELECT ContactCode FROM tbl_requests WHERE Id=@id", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@id", value: id);
+                var contactCode = command.ExecuteScalar();
+
+                if (contactCode != null) {
+                    return contactCode.ToString();
+                }
+            } catch(Exception ex) {
+                ErrorHandler.SetError(source: "GetContactCodeFromRequests", error: ex.Message);
+            }
+
+            return null;
+        }
+
+        public long GetIdByContactCode(string contactCode) {
+            try {
+                SqlCommand command = new SqlCommand(cmdText: "SELECT Id FROM tbl_users WHERE ContactCode=@contact", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@contact", value: contactCode);
+                var id = command.ExecuteScalar();
+
+                if (id != null) {
+                    return long.Parse(id.ToString());
+                }
+            } catch (Exception ex) {
+                ErrorHandler.SetError(source: "GetIdByContactCode", error: ex.Message);
+            }
+
+            return 0;
+        }
+
+        public string GetUsernameById(long id) {
+            try {
+                SqlCommand command = new SqlCommand(cmdText: "SELECT Username FROM tbl_users WHERE Id=@id", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@id", value: id);
+                var username = command.ExecuteScalar();
+
+                if (username != null) {
+                    return username.ToString();
+                }
+            } catch(Exception ex) {
+                ErrorHandler.SetError(source: "GetUsernameById", error: ex.Message);
+            }
+
+            return null;
+        }
+
+        public bool AddMessage(long receiverId, string receiverName, string receiverContactCode, string receiverUsername, string message,long senderId, string senderName, string senderUsername) {
+            try {
+                SqlCommand command = new SqlCommand(cmdText: "INSERT INTO tbl_messages (ReceiverId,ReceiverName,ReceiverContactCode,ReceiverUsername,Message,SenderId,SenderName,SenderUsername) VALUES (@rId,@rName,@rCode,@rUser,@message,@sId,@sName,@sUser)", connection: SqlConnection);
                 command.Parameters.AddWithValue(parameterName: "@rId", value: receiverId);
                 command.Parameters.AddWithValue(parameterName: "@rName", value: receiverName);
                 command.Parameters.AddWithValue(parameterName: "@rCode", value: receiverContactCode);
+                command.Parameters.AddWithValue(parameterName: "@rUser", value: receiverUsername);
                 command.Parameters.AddWithValue(parameterName: "@message", value: message);
                 command.Parameters.AddWithValue(parameterName: "@sId", value: senderId);
                 command.Parameters.AddWithValue(parameterName: "@sName", value: senderName);
+                command.Parameters.AddWithValue(parameterName: "@sUser", value: senderUsername);
 
                 command.ExecuteNonQuery();
                 return true;
