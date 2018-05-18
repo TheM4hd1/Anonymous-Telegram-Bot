@@ -18,7 +18,7 @@ namespace HarfeToBeBot_v2._0.Controller {
         public const string CMD_START = "/start";
         public const string CMD_BACK = Emoji.BACK + " بازگشت به منوی اصلی";
         public const string CMD_INBOX = Emoji.INBOX + " پیام های دریافت شده";
-        public const string CMD_REPLY = "/reply";
+        public const string CMD_REPLY = Emoji.REPLY + " می خوام به پیام پاسخ بدم";
         public const string CMD_LINK = Emoji.ENVELOPE + " می خوام پیام ناشناس دریافت کنم";
         public const string CMD_HELP = "راهنما";
 
@@ -33,5 +33,7 @@ namespace HarfeToBeBot_v2._0.Controller {
         public const string MSG_SHOW_INBOX = "شما X پیام دریافت شده دارید\n";
         public const string MSG_SENT = "پیام شما ارسال شد.";
         public const string MSG_NEW_MESSAGE = "شما یک پیام جدید دارید";
+        public const string MSG_ENTER_REPLY_NUMBER = "به کدوم پیام می خوای پاسخ بدی؟ فقط عددش رو برام ارسال کن\nاگر بیخیال شدی روی دکمه بازگشت کلیک کن";
+        public const string MSG_ENTER_REPLY_MESSAGE = "پاسخت رو برام ارسال کن";
     }
 }

@@ -111,10 +111,11 @@ namespace HarfeToBeBot_v2._0.Controller {
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_HELP)) {
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_REPLY)) {
-
+                    BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_ENTER_REPLY_NUMBER, keyboard: Keyboards.Back);
                 } else if (updateMessage.Equals(BotConfigs.CMD_BACK)) { // ---- We need to clean user's request from database for preventing future errors/exceptions.
                     if(DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.empty)) {
                         BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_RECEIVE_CMD);
+                        DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.replyToMessage);
                     }
                 } else { // --------------------------------------------------------------------------------------------------------------- Handling user requests like sendMessage, replyMessage and etc..
                     UserRequests request = DatabaseHandler.GetCurrentRequest(id: chatId.Identifier);
@@ -141,7 +142,32 @@ namespace HarfeToBeBot_v2._0.Controller {
                         BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_SENT); // Notif sender that your message sent.
                         BotApiMethods.SendTextMessageAsync(chatId: rId, message: BotConfigs.MSG_NEW_MESSAGE);// Notif receiver that you received a new message.
                     } else if (request == UserRequests.replyToMessage) {
+                        /* We need to get all messages from database for current user 
+                         then we have to pick the number which user told us want to reply it.(it saved in tbl_requests, column contactCode.
+                         after that, we find the senderId from database where selected message and receiverId equals to user info*/
+                        int messageNumber;
+                        string messageToSearch = string.Empty;
+                        if(int.TryParse(s:updateMessage, result: out messageNumber)) {
+                            System.Data.SqlClient.SqlDataReader userMessages = DatabaseHandler.GetAllMessagesFor(id: chatId.Identifier);
+                            int counter = 1;
+                            while(userMessages.Read()) {
+                                if(counter == messageNumber) {
+                                    messageToSearch = userMessages.GetString(0);
+                                    break;
+                                }
+                            }
 
+                            if (!string.IsNullOrEmpty(value: messageToSearch)) {
+                                long senderId = DatabaseHandler.GetSenderIdByMessage(receiverId: chatId.Identifier, message: messageToSearch);
+                                if(senderId != 0) {
+                                    if(DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.pickReplyMessage, contactCode: senderId.ToString())) {
+                                        BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_ENTER_REPLY_MESSAGE, keyboard: Keyboards.Back);
+                                    }
+                                }
+                            }
+                        }
+                    } else if(request == UserRequests.pickReplyMessage) {
+                        // NEXT UPDATE STARTS HERE. replyToMessage didnt tested.
                     }
                 }
 

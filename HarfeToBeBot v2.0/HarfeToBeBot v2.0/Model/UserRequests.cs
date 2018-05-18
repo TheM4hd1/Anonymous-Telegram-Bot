@@ -9,6 +9,7 @@ namespace HarfeToBeBot_v2._0.Model {
         contactCode = 1,
         sendMessage = 2,
         replyToMessage = 3,
-        empty = 4
+        pickReplyMessage = 4,
+        empty = 5
     }
 }

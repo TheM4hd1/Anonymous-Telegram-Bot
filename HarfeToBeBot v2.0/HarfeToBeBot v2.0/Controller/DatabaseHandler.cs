@@ -238,5 +238,22 @@ namespace HarfeToBeBot_v2._0.Controller {
                 return null;
             }
         }
+
+        public long GetSenderIdByMessage(long receiverId, string message) {
+            try {
+                SqlCommand command = new SqlCommand(cmdText: "SELECT SenderId FROM tb_messages WHERE Message=@message AND ReceiverId=@rId", connection: SqlConnection);
+                command.Parameters.AddWithValue(parameterName: "@message", value: message);
+                command.Parameters.AddWithValue(parameterName: "@rId", value: receiverId);
+                var senderId = command.ExecuteScalar();
+
+                if(senderId != null) {
+                    return long.Parse(senderId.ToString());
+                }
+            } catch(Exception ex) {
+                ErrorHandler.SetError(source: "GetSenderIdByMessage", error: ex.Message);
+            }
+
+            return 0;
+        }
     }
 }
