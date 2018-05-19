@@ -241,7 +241,7 @@ namespace HarfeToBeBot_v2._0.Controller {
 
         public long GetSenderIdByMessage(long receiverId, string message) {
             try {
-                SqlCommand command = new SqlCommand(cmdText: "SELECT SenderId FROM tb_messages WHERE Message=@message AND ReceiverId=@rId", connection: SqlConnection);
+                SqlCommand command = new SqlCommand(cmdText: "SELECT SenderId FROM tbl_messages WHERE Message=@message AND ReceiverId=@rId", connection: SqlConnection);
                 command.Parameters.AddWithValue(parameterName: "@message", value: message);
                 command.Parameters.AddWithValue(parameterName: "@rId", value: receiverId);
                 var senderId = command.ExecuteScalar();

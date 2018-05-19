@@ -9,6 +9,7 @@ using Telegram.Bot.Types;
 using HarfeToBeBot_v2._0.Model;
 using System.Windows.Forms;
 using HarfeToBeBot_v2._0.View;
+using System.Diagnostics;
 
 namespace HarfeToBeBot_v2._0.Controller {
     class UpdateHandler {
@@ -109,13 +110,13 @@ namespace HarfeToBeBot_v2._0.Controller {
                     }
 
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_HELP)) {
-
+                    BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_HELP);
                 } else if (updateMessage.StartsWith(BotConfigs.CMD_REPLY)) {
                     BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_ENTER_REPLY_NUMBER, keyboard: Keyboards.Back);
+                    DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.replyToMessage);
                 } else if (updateMessage.Equals(BotConfigs.CMD_BACK)) { // ---- We need to clean user's request from database for preventing future errors/exceptions.
                     if(DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.empty)) {
                         BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_RECEIVE_CMD);
-                        DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.replyToMessage);
                     }
                 } else { // --------------------------------------------------------------------------------------------------------------- Handling user requests like sendMessage, replyMessage and etc..
                     UserRequests request = DatabaseHandler.GetCurrentRequest(id: chatId.Identifier);
@@ -147,16 +148,17 @@ namespace HarfeToBeBot_v2._0.Controller {
                          after that, we find the senderId from database where selected message and receiverId equals to user info*/
                         int messageNumber;
                         string messageToSearch = string.Empty;
-                        if(int.TryParse(s:updateMessage, result: out messageNumber)) {
+                        if (int.TryParse(s: updateMessage, result: out messageNumber)) {
                             System.Data.SqlClient.SqlDataReader userMessages = DatabaseHandler.GetAllMessagesFor(id: chatId.Identifier);
                             int counter = 1;
                             while(userMessages.Read()) {
-                                if(counter == messageNumber) {
+                                if(counter++ == messageNumber) {
                                     messageToSearch = userMessages.GetString(0);
                                     break;
                                 }
                             }
 
+                            userMessages.Close();
                             if (!string.IsNullOrEmpty(value: messageToSearch)) {
                                 long senderId = DatabaseHandler.GetSenderIdByMessage(receiverId: chatId.Identifier, message: messageToSearch);
                                 if(senderId != 0) {
@@ -168,6 +170,12 @@ namespace HarfeToBeBot_v2._0.Controller {
                         }
                     } else if(request == UserRequests.pickReplyMessage) {
                         // NEXT UPDATE STARTS HERE. replyToMessage didnt tested.
+                        long id;
+                        if(long.TryParse(s: DatabaseHandler.GetContactCodeFromRequests(id: chatId.Identifier), result: out id)) {
+                            BotApiMethods.SendTextMessageAsync(chatId: id,message: $"{BotConfigs.MSG_REPLY_ANSWERED}{updateMessage}");
+                            BotApiMethods.SendTextMessageAsync(chatId: chatId.Identifier, message: BotConfigs.MSG_SENT);
+                            DatabaseHandler.EditUserRequest(id: chatId.Identifier, userRequests: UserRequests.empty);
+                        }
                     }
                 }
 
